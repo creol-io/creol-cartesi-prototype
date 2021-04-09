@@ -66,3 +66,8 @@ The result of the signature check will be stored in the output.raw file.
 ## Running on real ARM IoT Devices
 
 To be able to run this example on an ARM device, you will need to build all the docker images on the ARM device yourself. Until a final stable ARM release is published from the Cartesi team. We are actively working on this to help move things forward.
+
+The intent of this demo is to show that calculations can be done on Creol IoT devices. With the express purpose of working towards the final output being that ThREDLeader devices verify transactions signed by other nodes in the network before broadcasting them onchain.
+
+The diagram below indicates the proposed architecture that was explored in the Cartesi dApp grant program.
+
