@@ -71,3 +71,4 @@ The intent of this demo is to show that calculations can be done on Creol IoT de
 
 The diagram below indicates the proposed architecture that was explored in the Cartesi dApp grant program.
 
+![Creol-Cartesi-Diagram](https://github.com/creol-io/creol-cartesi-prototype/blob/main/creol-cartesi-diagram.PNG "Creol Cartesi Diagram")
