@@ -72,3 +72,5 @@ The intent of this demo is to show that calculations can be done on Creol IoT de
 The diagram below indicates the proposed architecture that was explored in the Cartesi dApp grant program.
 
 ![Creol-Cartesi-Diagram](https://github.com/creol-io/creol-cartesi-prototype/blob/main/creol-cartesi-diagram.PNG "Creol Cartesi Diagram")
+
+The design is that devices in the Thread Mesh network sign transactions themselves and submit the data that was signed and the signed transaction to the ThRED Leader to verify it came from within the network using Cartesi for the check before pushing the transaction to the RPC node to propagate to the network.
