@@ -74,3 +74,6 @@ The diagram below indicates the proposed architecture that was explored in the C
 ![Creol-Cartesi-Diagram](https://github.com/creol-io/creol-cartesi-prototype/blob/main/creol-cartesi-diagram.PNG "Creol Cartesi Diagram")
 
 The design is that devices in the Thread Mesh network sign transactions themselves and submit the data that was signed and the signed transaction to the ThRED Leader to verify it came from within the network using Cartesi for the check before pushing the transaction to the RPC node to propagate to the network.
+
+Creol CreezyPi devices would sign transactions themselves and then send them via 802.15.4 Thread to the Thread leader to run a check. When it receives it over Thread, it would trigger the Cartesi Machine to verify that the message came from within the pre auth'd network. 1 can either share a single key or each device can have it's own key.
+
