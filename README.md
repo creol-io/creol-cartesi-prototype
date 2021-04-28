@@ -4,7 +4,7 @@ This project contains current code being used to test the Descartes SDK, documen
 
 ## Getting Started
 
-### Requirements
+### 1. Requirements
 
 - docker
 - docker-compose
@@ -12,7 +12,7 @@ This project contains current code being used to test the Descartes SDK, documen
 - yarn
 - truffle
 
-### Environment
+### 2. Environment
 
 Download and run the Descartes SDK Environment ready-to-use artifact by executing:
 
@@ -27,7 +27,7 @@ cd descartes-env
 docker-compose up
 ```
 
-### Cartesi Playground
+### 3. Cartesi Playground
 
 Clone this project and use the cartesi/playground Docker image, making sure to map the current directory:
 
@@ -49,19 +49,155 @@ Still inside the playground, use the genext2fs tool to generate the file-system 
 ```
 genext2fs -b 1024 -d web3test web3test.ext2
 ```
+### 4. Building the Python3 Web3py Buildroot
 
-Still within the playground, execute the following command to run the web3 signature check in a cartesi machine:
-To note: The custom rootfs for this is prebuilt as it requires heavy customization to get running. The signature passed to the file is pre signed for the purposes of this repo. Future releases will be able to accept any signed message from any device for checking
+0. Init the submodule ```machine-emulator-sdk``` and enter it and enter the ```fs``` folder.
+
+To build the capable buildroot that is able to run the python script, you will have to enable the following packages within
+
 ```
-cartesi-machine \
-  --flash-drive="label:web3test,filename:web3test.ext2" \
-  --flash-drive="label:root,filename:rootfs.ext2" \
-  --flash-drive="label:output,length:1<<12,filename:output.raw,shared" \
-  -- $'cd /mnt/web3test ; ./runweb3test.sh > $(flashdrive output)'
+make config
+```
+They are as follows ( * indicates a selection)
+```bash
+Target Packages
+    ->Interpreters/Languages
+        -> * python3
+            -> Core Modules
+                -> * bz2
+                -> * readline
+                -> * ssl
+                -> * unicode
+                -> * sqlite
+                -> * xml
+                -> * xz
+                -> * zlib
+            -> External Modules
+                -> * python-pip
 ```
 
-The result of the signature check will be stored in the output.raw file.
+Hit exit, and do not build the buildroot when prompted.
 
+Verify that the cartesi-buildroot-config file has the modules enabled.
+
+Then run and wait for it to finish
+
+```
+make
+```
+ 
+#### 4.1 Enabling web3py in the Cartesi Buildroot
+
+To be able to run custom python packages within the Cartesi Buildroot, cross compilation of the environment must be added to the system.
+
+0. Run the buildroot itself
+    ```javascript
+    make run-as-root
+    ```
+
+1. Update the packages and install venv
+    ```javascript
+    apt update
+    apt install python3-pip python3-venv
+    ```
+2. Install Python cross compiler environment
+    ```
+    pip3 install crossenv
+    ```
+3. Setup virtual python environment 
+    ```javascript
+    cd /opt/riscv/rootfs
+    python3 -m crossenv buildroot/work/staging/usr/bin/python3.8 venv
+    //activate environment
+    . venv/bin/activate
+    ```
+4. Build cython and install web3
+    ```javascript
+    // build cython
+    build-pip3 install cython 
+    // build web3
+    pip3 install web3
+    ```
+5. Finally close the venv
+    ```javascript
+    deactivate
+    ```
+6. Lastly, build the ext2 file and copy it to the shared folder, then exit 
+    ```javascript
+    genext2fs -f -i 512 -b 65536 -d cross python-web3.ext2
+    cp python-web3.ext2 /opt/cartesi/rootfs
+    exit
+    ```
+
+#### Running the cross compiled Web3py Cartesi Machine
+
+1. Change directories to the emulator and activate the path variables
+    ```javascript
+    cd sdk/emulator
+    eval $(make env)
+    ```
+2. Change to ```src``` directory and copy the ext2 fs for use in the machine.
+
+    ```javascript
+    cd src
+    cp ../../fs/python-web3.ext2 .
+    cp ../../../web3test.ext2 .
+    
+    ```
+   
+
+#### Running the Web3 Computation Interactively
+
+Execute the following command within the ```src``` directory to run the web3 signature check in an interactive cartesi machine:
+```javascript
+docker run -it --rm \
+  -e USER=$(id -u -n) \
+  -e GROUP=$(id -g -n) \
+  -e UID=$(id -u) \
+  -e GID=$(id -g) \
+  -v `pwd`:/home/$(id -u -n) \
+  -w /home/$(id -u -n) \
+  cartesi/playground:0.3.0 /bin/bash
+
+cartesi-machine --flash-drive="label:root,filename:rootfs.ext2" --flash-drive="label:python-web3,filename:python-web3.ext2" --flash-drive="label:web3test,filename:web3test.ext2" -i /bin/sh
+```
+
+Once inside the interactive Cartesi Machine, run the following 3 commands
+```javascript
+export PATH=/mnt/python-web3/bin:$PATH
+cd /mnt/web3test
+python3 web3test.py
+```
+And the Output should resemble
+
+```javascript
+Running in interactive mode!
+
+         .
+        / \
+      /    \
+\---/---\  /----\
+ \       X       \
+  \----/  \---/---\
+       \    / CARTESI
+        \ /   MACHINE
+         '
+
+cartesi-machine:/ # export PATH=/mnt/python-web3/bin:$PATH
+export PATH=/mnt/python-web3/bin:$PATH
+cartesi-machine:/ # cd /mnt/web3test
+cd /mnt/web3test
+cartesi-machine:/mnt/web3test # python3 web3test.py
+python3 web3test.py
+Signed Local Transaction Hash is:
+
+0xd8f64a42b57be0d565f385378db2f6bf324ce14a594afc05de90436e9ce01f60
+Loading "Transmitted Thread Txn"...
+Txn loaded:...
+Comparing local transaction sign against transmitted transaction...
+Success! Matching hashes, this txn was signed from within the network
+
+```
 
 ## Running on real ARM IoT Devices
 

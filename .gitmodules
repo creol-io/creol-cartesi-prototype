@@ -1,0 +1,3 @@
+[submodule "machine-emulator-sdk"]
+	path = machine-emulator-sdk
+	url = https://github.com/cartesi/machine-emulator-sdk
